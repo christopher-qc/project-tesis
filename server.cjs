@@ -2,9 +2,10 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
+const path = require('path');
 
 const app = express();
-const port = 3000;  // Cambiado a un puerto válido para Express
+const port = process.env.PORT || 3000;  // Puerto para el servidor
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -26,14 +27,14 @@ connection.connect(error => {
 });
 
 // Rutas CRUD para la tabla Sponsors
-app.get('/sponsors', (req, res) => {
+app.get('/api/sponsors', (req, res) => {
   connection.query('SELECT * FROM Sponsors', (error, results) => {
     if (error) throw error;
     res.json(results);
   });
 });
 
-app.post('/sponsors', (req, res) => {
+app.post('/api/sponsors', (req, res) => {
   const sponsor = req.body;
   connection.query('INSERT INTO Sponsors SET ?', sponsor, (error, results) => {
     if (error) throw error;
@@ -41,7 +42,7 @@ app.post('/sponsors', (req, res) => {
   });
 });
 
-app.put('/sponsors/:id', (req, res) => {
+app.put('/api/sponsors/:id', (req, res) => {
   const { id } = req.params;
   const sponsor = req.body;
   connection.query('UPDATE Sponsors SET ? WHERE id = ?', [sponsor, id], (error, results) => {
@@ -50,7 +51,7 @@ app.put('/sponsors/:id', (req, res) => {
   });
 });
 
-app.delete('/sponsors/:id', (req, res) => {
+app.delete('/api/sponsors/:id', (req, res) => {
   const { id } = req.params;
   connection.query('DELETE FROM Sponsors WHERE id = ?', [id], (error, results) => {
     if (error) throw error;
@@ -58,6 +59,15 @@ app.delete('/sponsors/:id', (req, res) => {
   });
 });
 
+// Servir archivos estáticos si están en la carpeta 'dist'
+app.use(express.static(path.join(__dirname, 'dist')));
+
+// Redirigir todas las demás rutas a la aplicación Vue
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// Iniciar el servidor
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

@@ -15,6 +15,7 @@
 <script>
 import Carousel from './Carousel.vue';
 import axios from 'axios';
+import axiosInstance from '../axiosInstance';
 
 export default {
   components: {
@@ -31,7 +32,7 @@ export default {
   },
   methods: {
     fetchSponsors() {
-      axios.get('http://localhost:3000/sponsors')
+      axiosInstance.get('/api/sponsors')
         .then(response => {
           const filteredSponsors = response.data.filter(sponsor => sponsor.status === 'Aprobado');
           console.log(filteredSponsors);
