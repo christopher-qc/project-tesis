@@ -4,6 +4,7 @@ import Home from '../components/Home.vue';
 import SponsorTable from '../components/SponsorTable.vue';
 import SponsorForm from '../components/SponsorForm.vue';
 import ProcessSponsor from '../components/ProcessSponsor.vue';
+import Login from '../components/Login.vue';
 
 const router = createRouter({
   history: createWebHistory(),
@@ -12,6 +13,11 @@ const router = createRouter({
       path: '/',
       name: 'Home',
       component: Home
+    },
+    {
+      path: '/login',
+      name: 'Login',
+      component: Login
     },
     {
       path: '/sponsor-table',

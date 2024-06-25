@@ -2,10 +2,9 @@ const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
 const bodyParser = require('body-parser');
-const path = require('path');
 
 const app = express();
-const port = process.env.PORT || 3000;  // Puerto para el servidor
+const port = 3000;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -14,7 +13,7 @@ app.use(bodyParser.json());
 const connection = mysql.createConnection({
   host: '127.0.0.1',
   user: 'root',
-  password: '1234',
+  password: 'root',
   database: 'db_tesis'
 });
 
@@ -26,48 +25,83 @@ connection.connect(error => {
   console.log('Connected to database.');
 });
 
-// Rutas CRUD para la tabla Sponsors
-app.get('/api/sponsors', (req, res) => {
+// Rutas
+// GET - Obtener todos los sponsors
+app.get('/sponsors', (req, res) => {
   connection.query('SELECT * FROM Sponsors', (error, results) => {
-    if (error) throw error;
+    if (error) {
+      console.error('Error querying sponsors:', error.stack);
+      return res.status(500).json({ error: 'Database error' });
+    }
     res.json(results);
   });
 });
 
-app.post('/api/sponsors', (req, res) => {
-  const sponsor = req.body;
-  connection.query('INSERT INTO Sponsors SET ?', sponsor, (error, results) => {
-    if (error) throw error;
-    res.status(201).json({ id: results.insertId, ...sponsor });
+// POST - Agregar un nuevo sponsor
+app.post('/sponsors', (req, res) => {
+  const { company_name, manager_name, phone, district, province, company_type, logo_url, description, ruc } = req.body;
+  const status = 'Pendiente'; // Estado por defecto
+
+  const sql = 'INSERT INTO Sponsors (company_name, manager_name, phone, district, province, company_type, logo_url, description, status, ruc) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
+  const values = [company_name, manager_name, phone, district, province, company_type, logo_url, description, status, ruc];
+
+  connection.query(sql, values, (error, results) => {
+    if (error) {
+      console.error('Error adding sponsor:', error.stack);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.status(201).json({ id: results.insertId, ...req.body, status });
   });
 });
 
-app.put('/api/sponsors/:id', (req, res) => {
+
+// PUT - Actualizar estado de un sponsor por ID
+app.put('/sponsors/:id', (req, res) => {
   const { id } = req.params;
-  const sponsor = req.body;
-  connection.query('UPDATE Sponsors SET ? WHERE id = ?', [sponsor, id], (error, results) => {
-    if (error) throw error;
-    res.json({ id, ...sponsor });
+  const { status } = req.body;
+  const sql = 'UPDATE Sponsors SET status = ? WHERE id = ?';
+  const values = [status, id];
+
+  connection.query(sql, values, (error, results) => {
+    if (error) {
+      console.error('Error updating sponsor status:', error.stack);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ id, status });
   });
 });
 
-app.delete('/api/sponsors/:id', (req, res) => {
+app.delete('/sponsors/:id', (req, res) => {
   const { id } = req.params;
-  connection.query('DELETE FROM Sponsors WHERE id = ?', [id], (error, results) => {
-    if (error) throw error;
-    res.json({ id });
+  const sql = 'DELETE FROM Sponsors WHERE id = ?';
+
+  connection.query(sql, [id], (error, results) => {
+    if (error) {
+      console.error('Error deleting sponsor:', error.stack);
+      return res.status(500).json({ error: 'Database error' });
+    }
+    res.json({ message: 'Sponsor deleted successfully' });
   });
 });
 
-// Servir archivos estáticos si están en la carpeta 'dist'
-app.use(express.static(path.join(__dirname, 'dist')));
+// POST - Iniciar sesión (Autenticación)
+app.post('/login', (req, res) => {
+  const { username, password } = req.body;
+  console.log(username, password)
+  // Aquí deberías verificar el usuario y contraseña en tu base de datos o sistema de autenticación
+  // Puedes hacer una consulta a la base de datos o usar un sistema de autenticación como Passport.js
 
-// Redirigir todas las demás rutas a la aplicación Vue
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'index.html'));
+  // Ejemplo básico de autenticación simulada
+  if (username === 'admin' && password === 'admin123') {
+    res.status(200).json({ message: 'Login successful' });
+  } else {
+    res.status(401).json({ error: 'Credenciales incorrectas' });
+  }
 });
 
-// Iniciar el servidor
+
+
+// Iniciar servidor
 app.listen(port, () => {
-  console.log(`Server running on port ${port}`);
+  console.log(`Server running on http://localhost:${port}`);
 });

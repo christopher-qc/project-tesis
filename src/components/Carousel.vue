@@ -5,8 +5,8 @@
                 <img :src="item.logo_url" @error="handleImageError" alt="carousel item" />
             </div>
         </div>
-        <button @click="prev" class="prev-button">Prev</button>
-        <button @click="next" class="next-button">Next</button>
+        <button @click="prev" class="prev-button"><</button>
+        <button @click="next" class="next-button">></button>
     </div>
 </template>
 
@@ -91,9 +91,11 @@ button:hover {
 
 .prev-button {
     left: 10px;
+    font-size: 25px;
 }
 
 .next-button {
     right: 10px;
+    font-size: 25px;
 }
 </style>
